@@ -255,7 +255,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 40px;
+    font-size: var(--piece-size, 40px);
     cursor: pointer;
     transition: background 0.2s;
     position: relative;
@@ -559,6 +559,23 @@ h1 {
 
 .volume-control input[type="range"] {
     flex: 1;
+}
+
+.piece-size-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.piece-size-control input[type="range"] {
+    flex: 1;
+}
+
+.range-value {
+    min-width: 48px;
+    text-align: right;
+    color: #555;
 }
 
 .game-code-section h3 {
@@ -926,7 +943,7 @@ h1 {
     .square {
         width: 45px;
         height: 45px;
-        font-size: 30px;
+        font-size: var(--piece-size, 30px);
     }
 
     h1 {
