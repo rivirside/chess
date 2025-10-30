@@ -262,7 +262,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 40px;
+    font-size: var(--piece-size, 40px);
     cursor: pointer;
     transition: background 0.2s;
     position: relative;
@@ -566,6 +566,23 @@ h1 {
 
 .volume-control input[type="range"] {
     flex: 1;
+}
+
+.piece-size-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.piece-size-control input[type="range"] {
+    flex: 1;
+}
+
+.range-value {
+    min-width: 48px;
+    text-align: right;
+    color: #555;
 }
 
 .game-code-section h3 {
@@ -933,7 +950,7 @@ h1 {
     .square {
         width: 45px;
         height: 45px;
-        font-size: 30px;
+        font-size: var(--piece-size, 30px);
     }
 
     h1 {
@@ -1037,6 +1054,11 @@ h1 {
                             <option value="bold">Bold</option>
                             <option value="outlined">Outlined</option>
                         </select>
+                        <div class="piece-size-control" style="margin-top: 15px;">
+                            <label for="pieceSize">Piece Size:</label>
+                            <input type="range" id="pieceSize" min="28" max="60" step="1" value="40">
+                            <span id="pieceSizeValue" class="range-value">40px</span>
+                        </div>
                         <label style="margin-top: 15px;" for="evalBarLayout">Evaluation Bar:</label>
                         <select id="evalBarLayout">
                             <option value="side-right" selected>Side (Right)</option>
@@ -1291,6 +1313,7 @@ class ChessGame {
             gameMode: 'ai', // 'ai' or 'human'
             uiTheme: 'modern', // UI theme
             pieceStyle: 'standard', // piece appearance
+            pieceSize: 40, // px font-size for pieces
             evalBarLayout: 'side-right' // side-right, side-left, horizontal-top, horizontal-bottom, hidden
         };
 
@@ -1372,6 +1395,7 @@ class ChessGame {
         this.applyBoardTheme();
         this.applyUITheme?.();
         this.applyPieceStyle?.();
+        this.applyPieceSize?.();
         this.updateAnimationsClass?.();
         this.applyEvalBarLayout?.();
 
@@ -1436,6 +1460,7 @@ class ChessGame {
         chessboard.innerHTML = '';
         // Ensure appearance classes match settings
         if (this.applyPieceStyle) this.applyPieceStyle();
+        if (this.applyPieceSize) this.applyPieceSize();
         if (this.updateAnimationsClass) this.updateAnimationsClass();
 
         for (let row = 0; row < 8; row++) {
@@ -1605,6 +1630,15 @@ class ChessGame {
         chessboard.classList.add(`piece-style-${style}`);
     }
 
+    applyPieceSize() {
+        const chessboard = document.getElementById('chessboard');
+        if (!chessboard) return;
+        const size = Math.max(20, Math.min(80, this.settings.pieceSize || 40));
+        chessboard.style.setProperty('--piece-size', `${size}px`);
+        const valSpan = document.getElementById('pieceSizeValue');
+        if (valSpan) valSpan.textContent = `${size}px`;
+    }
+
     updateAnimationsClass() {
         const chessboard = document.getElementById('chessboard');
         if (!chessboard) return;
@@ -1700,6 +1734,19 @@ class ChessGame {
             handicapOptions.style.display = e.target.checked ? 'block' : 'none';
         });
 
+        // Live update piece size label as slider moves
+        const sizeInput = document.getElementById('pieceSize');
+        if (sizeInput) {
+            sizeInput.addEventListener('input', (e) => {
+                const v = parseInt(e.target.value, 10) || 40;
+                const span = document.getElementById('pieceSizeValue');
+                if (span) span.textContent = `${v}px`;
+                // Live preview piece size
+                this.settings.pieceSize = v;
+                this.applyPieceSize?.();
+            });
+        }
+
         // Apply settings
         applyBtn.addEventListener('click', () => {
             this.applySettings();
@@ -1732,6 +1779,10 @@ class ChessGame {
         if (uiSel) uiSel.value = this.settings.uiTheme || 'modern';
         const pieceSel = document.getElementById('pieceStyle');
         if (pieceSel) pieceSel.value = this.settings.pieceStyle || 'standard';
+        const pieceSize = document.getElementById('pieceSize');
+        if (pieceSize) pieceSize.value = this.settings.pieceSize || 40;
+        const pieceSizeValue = document.getElementById('pieceSizeValue');
+        if (pieceSizeValue) pieceSizeValue.textContent = `${this.settings.pieceSize || 40}px`;
         const evalBarSel = document.getElementById('evalBarLayout');
         if (evalBarSel) evalBarSel.value = this.settings.evalBarLayout || 'side-right';
         const vol = document.getElementById('soundVolume');
@@ -1759,6 +1810,8 @@ class ChessGame {
         if (uiSel) this.settings.uiTheme = uiSel.value;
         const pieceSel = document.getElementById('pieceStyle');
         if (pieceSel) this.settings.pieceStyle = pieceSel.value;
+        const pieceSize = document.getElementById('pieceSize');
+        if (pieceSize) this.settings.pieceSize = parseInt(pieceSize.value, 10) || 40;
         const evalBarSel = document.getElementById('evalBarLayout');
         if (evalBarSel) this.settings.evalBarLayout = evalBarSel.value;
         const vol = document.getElementById('soundVolume');
@@ -1767,6 +1820,7 @@ class ChessGame {
         this.applyBoardTheme();
         this.applyUITheme();
         this.applyPieceStyle();
+        this.applyPieceSize();
         this.updateAnimationsClass();
         this.applyEvalBarLayout();
 
