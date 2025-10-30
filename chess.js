@@ -95,11 +95,19 @@ class ChessGame {
         };
 
         // Sound effects (using Web Audio API with synthesized sounds)
+        // Create a single shared AudioContext to avoid browser limits
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.warn('Web Audio API not supported:', e);
+            this.audioContext = null;
+        }
+
         this.sounds = {
-            move: this.createMoveSound(),
-            capture: this.createCaptureSound(),
-            check: this.createCheckSound(),
-            gameOver: this.createGameOverSound()
+            move: () => this.playSound(400, 0.1, 'sine', 0.3),
+            capture: () => this.playSound(200, 0.15, 'triangle', 0.4),
+            check: () => this.playSound(800, 0.2, 'square', 0.2),
+            gameOver: () => this.playGameOverSound()
         };
 
         // Board flip state
@@ -151,93 +159,51 @@ class ChessGame {
 
     // ========== SOUND EFFECTS ==========
 
-    createMoveSound() {
-        // Simple move sound (short click)
-        return () => {
-            if (!this.settings.soundsEnabled) return;
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+    playSound(frequency, duration, type, volume) {
+        if (!this.settings.soundsEnabled || !this.audioContext) return;
+
+        try {
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
 
             oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            gainNode.connect(this.audioContext.destination);
 
-            oscillator.frequency.value = 400;
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+
+            gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + duration);
+        } catch (e) {
+            console.warn('Error playing sound:', e);
+        }
+    }
+
+    playGameOverSound() {
+        if (!this.settings.soundsEnabled || !this.audioContext) return;
+
+        try {
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+
+            oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(300, this.audioContext.currentTime + 0.5);
             oscillator.type = 'sine';
 
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
 
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.1);
-        };
-    }
-
-    createCaptureSound() {
-        // Capture sound (lower thud)
-        return () => {
-            if (!this.settings.soundsEnabled) return;
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.frequency.value = 200;
-            oscillator.type = 'triangle';
-
-            gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.15);
-        };
-    }
-
-    createCheckSound() {
-        // Check sound (alert beep)
-        return () => {
-            if (!this.settings.soundsEnabled) return;
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.frequency.value = 800;
-            oscillator.type = 'square';
-
-            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.2);
-        };
-    }
-
-    createGameOverSound() {
-        // Game over sound (descending tone)
-        return () => {
-            if (!this.settings.soundsEnabled) return;
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.5);
-            oscillator.type = 'sine';
-
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.5);
-        };
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.5);
+        } catch (e) {
+            console.warn('Error playing game over sound:', e);
+        }
     }
 
     initializeBoard() {
