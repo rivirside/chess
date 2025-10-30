@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess vs AI</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Chess vs AI</h1>
+
+        <div class="game-info">
+            <div class="status" id="status">White's turn</div>
+            <div class="controls">
+                <button id="newGame" class="btn">New Game</button>
+                <button id="undoMove" class="btn">Undo Move</button>
+                <button id="settingsBtn" class="btn">⚙️ Settings</button>
+                <button id="flipBoard" class="btn">🔄 Flip Board</button>
+                <div class="game-mode-selector">
+                    <label for="gameMode">Mode:</label>
+                    <select id="gameMode">
+                        <option value="ai" selected>vs AI</option>
+                        <option value="human">vs Human</option>
+                    </select>
+                </div>
+                <div class="difficulty-selector" id="difficultySelector">
+                    <label for="difficulty">AI Difficulty:</label>
+                    <select id="difficulty">
+                        <option value="1">Easy (Depth 1)</option>
+                        <option value="2">Medium (Depth 2)</option>
+                        <option value="3" selected>Hard (Depth 3)</option>
+                        <option value="4">Expert (Depth 4)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Game Settings</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="setting-group">
+                        <h3>Timer Settings</h3>
+                        <label>
+                            <input type="checkbox" id="enableTimer"> Enable Timer
+                        </label>
+                        <div id="timerOptions" class="timer-options">
+                            <label for="timeControl">Time Control:</label>
+                            <select id="timeControl">
+                                <option value="bullet1">Bullet (1 min)</option>
+                                <option value="bullet2">Bullet (2 min + 1s)</option>
+                                <option value="blitz3">Blitz (3 min)</option>
+                                <option value="blitz5" selected>Blitz (5 min)</option>
+                                <option value="rapid10">Rapid (10 min)</option>
+                                <option value="rapid15">Rapid (15 min + 10s)</option>
+                                <option value="classical30">Classical (30 min)</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                            <div id="customTimer" class="custom-timer">
+                                <label>
+                                    Minutes: <input type="number" id="customMinutes" min="1" max="180" value="5">
+                                </label>
+                                <label>
+                                    Increment (seconds): <input type="number" id="customIncrement" min="0" max="60" value="0">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Visual Settings</h3>
+                        <label for="boardTheme">Board Theme:</label>
+                        <select id="boardTheme">
+                            <option value="classic" selected>Classic</option>
+                            <option value="wood">Wood</option>
+                            <option value="marble">Marble</option>
+                            <option value="neon">Neon</option>
+                            <option value="ocean">Ocean</option>
+                        </select>
+                        <label style="margin-top: 15px;">
+                            <input type="checkbox" id="enableSounds" checked> Enable Sound Effects
+                        </label>
+                        <label>
+                            <input type="checkbox" id="enableAnimations" checked> Enable Animations
+                        </label>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Game Variants</h3>
+                        <label>
+                            <input type="checkbox" id="enableChess960"> Chess960 (Fischer Random)
+                        </label>
+                        <p class="setting-description">Randomizes the starting position of pieces on the back rank.</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Handicap Mode</h3>
+                        <label>
+                            <input type="checkbox" id="enableHandicap"> Enable Handicap
+                        </label>
+                        <div id="handicapOptions" class="handicap-options">
+                            <label>Handicap for:</label>
+                            <select id="handicapSide">
+                                <option value="black">Black (AI)</option>
+                                <option value="white">White (Player)</option>
+                            </select>
+                            <div class="piece-removal">
+                                <p>Remove pieces:</p>
+                                <div class="piece-checkboxes">
+                                    <label><input type="checkbox" value="Q" class="handicap-piece"> Queen</label>
+                                    <label><input type="checkbox" value="R" class="handicap-piece"> Rook(s)</label>
+                                    <label><input type="checkbox" value="B" class="handicap-piece"> Bishop(s)</label>
+                                    <label><input type="checkbox" value="N" class="handicap-piece"> Knight(s)</label>
+                                    <label><input type="checkbox" value="P" class="handicap-piece"> Pawn(s)</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="applySettings" class="btn btn-primary">Apply & New Game</button>
+                    <button id="cancelSettings" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="board-container">
+            <!-- Timer Display -->
+            <div class="timer-display" id="timerDisplay" style="display: none;">
+                <div class="timer black-timer" id="blackTimer">
+                    <span class="timer-label">Black</span>
+                    <span class="timer-time">5:00</span>
+                </div>
+                <div class="timer white-timer" id="whiteTimer">
+                    <span class="timer-label">White</span>
+                    <span class="timer-time">5:00</span>
+                </div>
+            </div>
+
+            <div id="chessboard" class="chessboard"></div>
+        </div>
+
+        <div class="captured-pieces">
+            <div class="captured-white">
+                <h3>Captured by Black</h3>
+                <div id="capturedWhite" class="pieces-list"></div>
+            </div>
+            <div class="captured-black">
+                <h3>Captured by White</h3>
+                <div id="capturedBlack" class="pieces-list"></div>
+            </div>
+        </div>
+
+        <div class="move-history">
+            <h3>Move History <span class="history-hint">(click to jump)</span></h3>
+            <div id="moveList" class="move-list"></div>
+            <div id="viewingPast" class="viewing-past" style="display: none;">
+                <span>📍 Viewing past position</span>
+                <button id="returnToPresent" class="btn-small">Return to Current Game</button>
+            </div>
+        </div>
+
+        <div class="game-code-section">
+            <h3>Share Game</h3>
+            <div class="code-display">
+                <input type="text" id="gameCode" readonly placeholder="Game code will appear here">
+                <button id="copyCode" class="btn-small">Copy</button>
+                <button id="generateCode" class="btn-small">Generate Code</button>
+            </div>
+            <div class="code-load">
+                <input type="text" id="loadCodeInput" placeholder="Paste game code here">
+                <button id="loadCode" class="btn-small">Load Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promotion Modal -->
+    <div id="promotionModal" class="modal promotion-modal">
+        <div class="promotion-content">
+            <h3>Choose Promotion</h3>
+            <div class="promotion-pieces" id="promotionPieces">
+                <!-- Pieces will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="chess.js"></script>
+</body>
+</html>
