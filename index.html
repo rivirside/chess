@@ -15,6 +15,7 @@
             <div class="controls">
                 <button id="newGame" class="btn">New Game</button>
                 <button id="undoMove" class="btn">Undo Move</button>
+                <button id="resignBtn" class="btn">Resign</button>
                 <button id="settingsBtn" class="btn">⚙️ Settings</button>
                 <button id="flipBoard" class="btn">🔄 Flip Board</button>
                 <div class="game-mode-selector">
@@ -74,7 +75,15 @@
 
                     <div class="setting-group">
                         <h3>Visual Settings</h3>
-                        <label for="boardTheme">Board Theme:</label>
+                        <label for="uiTheme">UI Theme:</label>
+                        <select id="uiTheme">
+                            <option value="modern" selected>Modern</option>
+                            <option value="minimal">Minimal</option>
+                            <option value="classic">Classic</option>
+                            <option value="dark">Dark Mode</option>
+                            <option value="retro">Retro</option>
+                        </select>
+                        <label style="margin-top: 15px;" for="boardTheme">Board Colors:</label>
                         <select id="boardTheme">
                             <option value="classic" selected>Classic</option>
                             <option value="wood">Wood</option>
@@ -82,12 +91,30 @@
                             <option value="neon">Neon</option>
                             <option value="ocean">Ocean</option>
                         </select>
+                        <label style="margin-top: 15px;" for="pieceStyle">Piece Style:</label>
+                        <select id="pieceStyle">
+                            <option value="standard" selected>Standard</option>
+                            <option value="bold">Bold</option>
+                            <option value="outlined">Outlined</option>
+                        </select>
+                        <label style="margin-top: 15px;" for="evalBarLayout">Evaluation Bar:</label>
+                        <select id="evalBarLayout">
+                            <option value="side-right" selected>Side (Right)</option>
+                            <option value="side-left">Side (Left)</option>
+                            <option value="horizontal-top">Horizontal (Top)</option>
+                            <option value="horizontal-bottom">Horizontal (Bottom)</option>
+                            <option value="hidden">Hidden</option>
+                        </select>
                         <label style="margin-top: 15px;">
                             <input type="checkbox" id="enableSounds" checked> Enable Sound Effects
                         </label>
                         <label>
                             <input type="checkbox" id="enableAnimations" checked> Enable Animations
                         </label>
+                        <div class="volume-control">
+                            <label for="soundVolume">Sound Volume:</label>
+                            <input type="range" id="soundVolume" min="0" max="1" step="0.05" value="0.8">
+                        </div>
                     </div>
 
                     <div class="setting-group">
@@ -142,7 +169,17 @@
                 </div>
             </div>
 
-            <div id="chessboard" class="chessboard"></div>
+            <div class="play-area eval-side-right" id="playArea">
+                <div id="chessboard" class="chessboard"></div>
+
+                <!-- Evaluation Bar -->
+                <div class="eval-bar-container" id="evalBarContainer">
+                    <div class="eval-bar" id="evalBar">
+                        <div class="eval-bar-fill" id="evalBarFill"></div>
+                    </div>
+                    <div class="eval-score" id="evalScore">0.0</div>
+                </div>
+            </div>
         </div>
 
         <div class="captured-pieces">

@@ -1,3 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess vs AI</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    transition: background 0.3s ease;
+}
+
+.container {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 800px;
+    transition: all 0.3s ease;
+}
+
+/* ========== UI THEMES ========== */
+
+/* Modern Theme (Default - Enhanced) */
+body.theme-modern {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+body.theme-modern .container {
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+/* Minimal Theme */
+body.theme-minimal {
+    background: #f5f5f5;
+}
+
+body.theme-minimal .container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+}
+
+body.theme-minimal .btn {
+    background: #333;
+    border-radius: 4px;
+}
+
+body.theme-minimal h1 {
+    font-weight: 300;
+    letter-spacing: -1px;
+}
+
+/* Classic Theme */
+body.theme-classic {
+    background: #8b7355;
+}
+
+body.theme-classic .container {
+    background: #f4e4d7;
+    border-radius: 5px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+    border: 3px solid #5d4a3a;
+}
+
+body.theme-classic .btn {
+    background: #8b6f47;
+    border: 2px solid #5d4a3a;
+}
+
+body.theme-classic h1 {
+    color: #3e2723;
+    font-family: Georgia, serif;
+}
+
+/* Dark Theme */
+body.theme-dark {
+    background: #1a1a1a;
+}
+
+body.theme-dark .container {
+    background: linear-gradient(to bottom, #2d2d2d 0%, #1f1f1f 100%);
+    border: 1px solid #444;
+    color: #e0e0e0;
+}
+
+body.theme-dark h1,
+body.theme-dark h2,
+body.theme-dark h3,
+body.theme-dark label,
+body.theme-dark .status {
+    color: #e0e0e0;
+}
+
+body.theme-dark .btn {
+    background: #667eea;
+    color: white;
+}
+
+body.theme-dark .setting-group {
+    border-bottom-color: #444;
+}
+
+body.theme-dark .modal-content {
+    background: #2d2d2d;
+    border: 1px solid #444;
+}
+
+body.theme-dark input,
+body.theme-dark select {
+    background: #1f1f1f;
+    color: #e0e0e0;
+    border-color: #444;
+}
+
+body.theme-dark .pieces-list,
+body.theme-dark .move-list,
+body.theme-dark .game-code-section {
+    background: #1f1f1f;
+    border-color: #444;
+}
+
+/* Retro Theme */
+body.theme-retro {
+    background: #000;
+}
+
+body.theme-retro .container {
+    background: #0f380f;
+    border-radius: 20px;
+    box-shadow: 0 0 30px #9bbc0f, inset 0 0 100px rgba(155, 188, 15, 0.1);
+    border: 4px solid #306230;
+    color: #9bbc0f;
+}
+
+body.theme-retro h1,
+body.theme-retro h2,
+body.theme-retro h3,
+body.theme-retro label {
+    color: #9bbc0f;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 5px #9bbc0f;
+}
+
+body.theme-retro .btn {
+    background: #0f380f;
+    color: #9bbc0f;
+    border: 2px solid #9bbc0f;
+    box-shadow: 0 0 10px rgba(155, 188, 15, 0.3);
+}
+
+body.theme-retro .btn:hover {
+    background: #306230;
+    box-shadow: 0 0 15px rgba(155, 188, 15, 0.5);
+}
+
+body.theme-retro .status {
+    color: #9bbc0f;
+    background: #0a2e0a;
+    border: 2px solid #306230;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 2.5em;
+}
+
+.game-info {
+    margin-bottom: 20px;
+}
+
+.status {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #667eea;
+    text-align: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f0f0f0;
+    border-radius: 8px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    background: #667eea;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn:hover {
+    background: #5568d3;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.difficulty-selector, .game-mode-selector {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.difficulty-selector label, .game-mode-selector label {
+    font-weight: bold;
+    color: #333;
+}
+
+.difficulty-selector select, .game-mode-selector select {
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: 2px solid #667eea;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+.board-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.chessboard {
+    display: grid;
+    grid-template-columns: repeat(8, 60px);
+    grid-template-rows: repeat(8, 60px);
+    border: 3px solid #333;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.square {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+}
+
+.square.light {
+    background: #f0d9b5;
+}
+
+.square.dark {
+    background: #b58863;
+}
+
+/* Board Themes */
+.theme-wood .square.light {
+    background: #d4a574;
+}
+
+.theme-wood .square.dark {
+    background: #8b5a2b;
+}
+
+.theme-marble .square.light {
+    background: #e8e8e8;
+}
+
+.theme-marble .square.dark {
+    background: #6c7a89;
+}
+
+.theme-neon .square.light {
+    background: #00ff88;
+}
+
+.theme-neon .square.dark {
+    background: #0088ff;
+}
+
+.theme-ocean .square.light {
+    background: #b8d4e8;
+}
+
+.theme-ocean .square.dark {
+    background: #4a7ba7;
+}
+
+/* Board Flip */
+.chessboard.flipped {
+    transform: rotate(180deg);
+}
+
+.chessboard.flipped .square {
+    transform: rotate(180deg);
+}
+
+/* Piece Animation */
+.piece-animating {
+    transition: all 0.3s ease-out;
+}
+
+.square {
+    position: relative;
+}
+
+.square.selected {
+    background: #829769 !important;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.square.last-move {
+    background: #cdd26a !important;
+}
+
+.square.valid-move {
+    position: relative;
+}
+
+.square.valid-move::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: rgba(0, 128, 0, 0.5);
+    border-radius: 50%;
+}
+
+.square.valid-capture::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 4px solid rgba(255, 0, 0, 0.5);
+    border-radius: 50%;
+}
+
+/* Coordinates labels */
+.coord {
+    position: absolute;
+    font-size: 10px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+}
+
+.coord.file {
+    bottom: 2px;
+    right: 4px;
+    color: rgba(0,0,0,0.6);
+}
+
+.coord.rank {
+    top: 2px;
+    left: 4px;
+    color: rgba(0,0,0,0.6);
+}
+
+.square.dark .coord.file,
+.square.dark .coord.rank {
+    color: rgba(255,255,255,0.75);
+}
+
+.square:hover {
+    filter: brightness(0.9);
+}
+
+.piece {
+    user-select: none;
+    pointer-events: none;
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+    transition: transform 0.2s ease;
+}
+
+/* Piece Styles */
+.piece-style-standard .piece {
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+}
+
+.piece-style-bold .piece {
+    font-weight: bold;
+    filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));
+    transform: scale(1.1);
+}
+
+.piece-style-outlined .piece {
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        0 0 3px rgba(0,0,0,0.5);
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4));
+}
+
+/* Animations */
+@keyframes piece-float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-3px); }
+}
+
+.square:hover .piece {
+    animation: piece-float 0.6s ease-in-out;
+}
+
+.chessboard.animations-enabled .piece {
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.chessboard.animations-enabled .square {
+    transition: background 0.3s ease, transform 0.1s ease;
+}
+
+.chessboard.animations-enabled .square:active {
+    transform: scale(0.95);
+}
+
+.captured-pieces {
+    display: flex;
+    gap: 20px;
+    justify-content: space-around;
+    margin: 20px 0;
+}
+
+.captured-white, .captured-black {
+    flex: 1;
+}
+
+.captured-pieces h3 {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.pieces-list {
+    min-height: 50px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    font-size: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.move-history {
+    margin-top: 20px;
+}
+
+.move-history h3 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.history-hint {
+    font-size: 0.8em;
+    color: #999;
+    font-weight: normal;
+    font-style: italic;
+}
+
+.move-list {
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+}
+
+.move-item {
+    padding: 5px 8px;
+    margin: 2px 0;
+    background: white;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    user-select: none;
+}
+
+.move-item:hover {
+    background: #e0e0e0;
+    transform: translateX(2px);
+}
+
+.move-item:nth-child(even) {
+    background: #f0f0f0;
+}
+
+.move-item:nth-child(even):hover {
+    background: #e0e0e0;
+}
+
+.move-item.active {
+    background: #667eea;
+    color: white;
+    font-weight: bold;
+}
+
+.viewing-past {
+    margin-top: 10px;
+    padding: 10px;
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    color: #856404;
+}
+
+.btn-small {
+    padding: 5px 12px;
+    font-size: 0.9em;
+    border: none;
+    border-radius: 4px;
+    background: #667eea;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-small:hover {
+    background: #5568d3;
+}
+
+.game-code-section {
+    margin-top: 25px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.volume-control input[type="range"] {
+    flex: 1;
+}
+
+.game-code-section h3 {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.code-display, .code-load {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.code-display input, .code-load input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95em;
+}
+
+.code-display input:focus, .code-load input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* Promotion Modal */
+.promotion-modal .modal-content {
+    max-width: 400px;
+}
+
+.promotion-content {
+    padding: 30px;
+    text-align: center;
+}
+
+.promotion-content h3 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.promotion-pieces {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.promotion-piece {
+    font-size: 60px;
+    padding: 15px;
+    background: #f0f0f0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.promotion-piece:hover {
+    background: #667eea;
+    transform: scale(1.1);
+}
+
+/* Thinking indicator */
+.thinking {
+    color: #ff6b6b;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow: auto;
+}
+
+.modal.show {
+    display: block;
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 1px solid #ddd;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #333;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modal-body {
+    padding: 30px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.setting-group {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.setting-group:last-child {
+    border-bottom: none;
+}
+
+.setting-group h3 {
+    margin-bottom: 15px;
+    color: #667eea;
+    font-size: 1.2em;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 10px;
+    cursor: pointer;
+    color: #333;
+}
+
+.setting-group input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.setting-description {
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+.timer-options, .handicap-options {
+    margin-left: 20px;
+    margin-top: 15px;
+}
+
+.timer-options select, .handicap-options select {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: 2px solid #667eea;
+    font-size: 1em;
+    margin-top: 5px;
+}
+
+.custom-timer {
+    margin-top: 15px;
+    display: none;
+}
+
+.custom-timer.show {
+    display: block;
+}
+
+.custom-timer label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.custom-timer input[type="number"] {
+    padding: 5px 10px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    width: 100px;
+}
+
+.piece-removal {
+    margin-top: 15px;
+}
+
+.piece-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 20px 30px;
+    border-top: 1px solid #ddd;
+}
+
+.btn-primary {
+    background: #667eea;
+}
+
+.btn-secondary {
+    background: #999;
+}
+
+/* Timer Display */
+.timer-display {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 20px;
+}
+
+.timer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 25px;
+    border-radius: 10px;
+    background: #f0f0f0;
+    min-width: 120px;
+}
+
+.timer.active {
+    background: #667eea;
+    color: white;
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+}
+
+.timer.warning {
+    background: #ff9800;
+    color: white;
+    animation: pulse 1s infinite;
+}
+
+.timer.danger {
+    background: #f44336;
+    color: white;
+    animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.timer-label {
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.timer-time {
+    font-size: 1.8em;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+}
+
+.board-container {
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Play area wraps board + eval bar */
+.play-area {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+}
+.play-area.eval-side-right { flex-direction: row; }
+.play-area.eval-side-left { flex-direction: row-reverse; }
+.play-area.eval-horizontal-top { flex-direction: column; }
+.play-area.eval-horizontal-bottom { flex-direction: column-reverse; }
+
+/* Evaluation Bar */
+.eval-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.eval-bar-container.horizontal {
+    flex-direction: row;
+}
+.eval-bar-container.vertical {
+    flex-direction: column;
+}
+
+.eval-bar {
+    background: #000;
+    border: 2px solid #333;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+.eval-bar.vertical { width: 30px; height: 100%; }
+.eval-bar.horizontal { width: 100%; height: 24px; }
+
+.eval-bar-fill {
+    position: absolute;
+    background: #fff;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 50%;
+    transition: height 0.2s ease, width 0.2s ease;
+}
+.eval-bar.horizontal .eval-bar-fill {
+    height: 100%;
+    width: 50%;
+}
+
+.eval-score {
+    font-size: 1.1em;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    color: #333;
+    min-width: 50px;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .chessboard {
+        grid-template-columns: repeat(8, 45px);
+        grid-template-rows: repeat(8, 45px);
+    }
+
+    .square {
+        width: 45px;
+        height: 45px;
+        font-size: 30px;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    .container {
+        padding: 15px;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chess vs AI</h1>
+
+        <div class="game-info">
+            <div class="status" id="status">White's turn</div>
+            <div class="controls">
+                <button id="newGame" class="btn">New Game</button>
+                <button id="undoMove" class="btn">Undo Move</button>
+                <button id="resignBtn" class="btn">Resign</button>
+                <button id="settingsBtn" class="btn">⚙️ Settings</button>
+                <button id="flipBoard" class="btn">🔄 Flip Board</button>
+                <div class="game-mode-selector">
+                    <label for="gameMode">Mode:</label>
+                    <select id="gameMode">
+                        <option value="ai" selected>vs AI</option>
+                        <option value="human">vs Human</option>
+                    </select>
+                </div>
+                <div class="difficulty-selector" id="difficultySelector">
+                    <label for="difficulty">AI Difficulty:</label>
+                    <select id="difficulty">
+                        <option value="1">Easy (Depth 1)</option>
+                        <option value="2">Medium (Depth 2)</option>
+                        <option value="3" selected>Hard (Depth 3)</option>
+                        <option value="4">Expert (Depth 4)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Game Settings</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="setting-group">
+                        <h3>Timer Settings</h3>
+                        <label>
+                            <input type="checkbox" id="enableTimer"> Enable Timer
+                        </label>
+                        <div id="timerOptions" class="timer-options">
+                            <label for="timeControl">Time Control:</label>
+                            <select id="timeControl">
+                                <option value="bullet1">Bullet (1 min)</option>
+                                <option value="bullet2">Bullet (2 min + 1s)</option>
+                                <option value="blitz3">Blitz (3 min)</option>
+                                <option value="blitz5" selected>Blitz (5 min)</option>
+                                <option value="rapid10">Rapid (10 min)</option>
+                                <option value="rapid15">Rapid (15 min + 10s)</option>
+                                <option value="classical30">Classical (30 min)</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                            <div id="customTimer" class="custom-timer">
+                                <label>
+                                    Minutes: <input type="number" id="customMinutes" min="1" max="180" value="5">
+                                </label>
+                                <label>
+                                    Increment (seconds): <input type="number" id="customIncrement" min="0" max="60" value="0">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Visual Settings</h3>
+                        <label for="uiTheme">UI Theme:</label>
+                        <select id="uiTheme">
+                            <option value="modern" selected>Modern</option>
+                            <option value="minimal">Minimal</option>
+                            <option value="classic">Classic</option>
+                            <option value="dark">Dark Mode</option>
+                            <option value="retro">Retro</option>
+                        </select>
+                        <label style="margin-top: 15px;" for="boardTheme">Board Colors:</label>
+                        <select id="boardTheme">
+                            <option value="classic" selected>Classic</option>
+                            <option value="wood">Wood</option>
+                            <option value="marble">Marble</option>
+                            <option value="neon">Neon</option>
+                            <option value="ocean">Ocean</option>
+                        </select>
+                        <label style="margin-top: 15px;" for="pieceStyle">Piece Style:</label>
+                        <select id="pieceStyle">
+                            <option value="standard" selected>Standard</option>
+                            <option value="bold">Bold</option>
+                            <option value="outlined">Outlined</option>
+                        </select>
+                        <label style="margin-top: 15px;" for="evalBarLayout">Evaluation Bar:</label>
+                        <select id="evalBarLayout">
+                            <option value="side-right" selected>Side (Right)</option>
+                            <option value="side-left">Side (Left)</option>
+                            <option value="horizontal-top">Horizontal (Top)</option>
+                            <option value="horizontal-bottom">Horizontal (Bottom)</option>
+                            <option value="hidden">Hidden</option>
+                        </select>
+                        <label style="margin-top: 15px;">
+                            <input type="checkbox" id="enableSounds" checked> Enable Sound Effects
+                        </label>
+                        <label>
+                            <input type="checkbox" id="enableAnimations" checked> Enable Animations
+                        </label>
+                        <div class="volume-control">
+                            <label for="soundVolume">Sound Volume:</label>
+                            <input type="range" id="soundVolume" min="0" max="1" step="0.05" value="0.8">
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Game Variants</h3>
+                        <label>
+                            <input type="checkbox" id="enableChess960"> Chess960 (Fischer Random)
+                        </label>
+                        <p class="setting-description">Randomizes the starting position of pieces on the back rank.</p>
+                    </div>
+
+                    <div class="setting-group">
+                        <h3>Handicap Mode</h3>
+                        <label>
+                            <input type="checkbox" id="enableHandicap"> Enable Handicap
+                        </label>
+                        <div id="handicapOptions" class="handicap-options">
+                            <label>Handicap for:</label>
+                            <select id="handicapSide">
+                                <option value="black">Black (AI)</option>
+                                <option value="white">White (Player)</option>
+                            </select>
+                            <div class="piece-removal">
+                                <p>Remove pieces:</p>
+                                <div class="piece-checkboxes">
+                                    <label><input type="checkbox" value="Q" class="handicap-piece"> Queen</label>
+                                    <label><input type="checkbox" value="R" class="handicap-piece"> Rook(s)</label>
+                                    <label><input type="checkbox" value="B" class="handicap-piece"> Bishop(s)</label>
+                                    <label><input type="checkbox" value="N" class="handicap-piece"> Knight(s)</label>
+                                    <label><input type="checkbox" value="P" class="handicap-piece"> Pawn(s)</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="applySettings" class="btn btn-primary">Apply & New Game</button>
+                    <button id="cancelSettings" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="board-container">
+            <!-- Timer Display -->
+            <div class="timer-display" id="timerDisplay" style="display: none;">
+                <div class="timer black-timer" id="blackTimer">
+                    <span class="timer-label">Black</span>
+                    <span class="timer-time">5:00</span>
+                </div>
+                <div class="timer white-timer" id="whiteTimer">
+                    <span class="timer-label">White</span>
+                    <span class="timer-time">5:00</span>
+                </div>
+            </div>
+
+            <div class="play-area eval-side-right" id="playArea">
+                <div id="chessboard" class="chessboard"></div>
+
+                <!-- Evaluation Bar -->
+                <div class="eval-bar-container" id="evalBarContainer">
+                    <div class="eval-bar" id="evalBar">
+                        <div class="eval-bar-fill" id="evalBarFill"></div>
+                    </div>
+                    <div class="eval-score" id="evalScore">0.0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="captured-pieces">
+            <div class="captured-white">
+                <h3>Captured by Black</h3>
+                <div id="capturedWhite" class="pieces-list"></div>
+            </div>
+            <div class="captured-black">
+                <h3>Captured by White</h3>
+                <div id="capturedBlack" class="pieces-list"></div>
+            </div>
+        </div>
+
+        <div class="move-history">
+            <h3>Move History <span class="history-hint">(click to jump)</span></h3>
+            <div id="moveList" class="move-list"></div>
+            <div id="viewingPast" class="viewing-past" style="display: none;">
+                <span>📍 Viewing past position</span>
+                <button id="returnToPresent" class="btn-small">Return to Current Game</button>
+            </div>
+        </div>
+
+        <div class="game-code-section">
+            <h3>Share Game</h3>
+            <div class="code-display">
+                <input type="text" id="gameCode" readonly placeholder="Game code will appear here">
+                <button id="copyCode" class="btn-small">Copy</button>
+                <button id="generateCode" class="btn-small">Generate Code</button>
+            </div>
+            <div class="code-load">
+                <input type="text" id="loadCodeInput" placeholder="Paste game code here">
+                <button id="loadCode" class="btn-small">Load Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promotion Modal -->
+    <div id="promotionModal" class="modal promotion-modal">
+        <div class="promotion-content">
+            <h3>Choose Promotion</h3>
+            <div class="promotion-pieces" id="promotionPieces">
+                <!-- Pieces will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="chess.js"></script>
+</body>
+</html>
+
+    <script>
 // Chess Game with Minimax AI
 
 // Piece Unicode characters
@@ -2252,3 +3425,6 @@ let game;
 document.addEventListener('DOMContentLoaded', () => {
     game = new ChessGame();
 });
+    </script>
+</body>
+</html>
