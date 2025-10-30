@@ -118,6 +118,7 @@ class ChessGame {
             gameMode: 'ai', // 'ai' or 'human'
             uiTheme: 'modern', // UI theme
             pieceStyle: 'standard', // piece appearance
+            pieceSize: 40, // px font-size for pieces
             evalBarLayout: 'side-right' // side-right, side-left, horizontal-top, horizontal-bottom, hidden
         };
 
@@ -199,6 +200,7 @@ class ChessGame {
         this.applyBoardTheme();
         this.applyUITheme?.();
         this.applyPieceStyle?.();
+        this.applyPieceSize?.();
         this.updateAnimationsClass?.();
         this.applyEvalBarLayout?.();
 
@@ -263,6 +265,7 @@ class ChessGame {
         chessboard.innerHTML = '';
         // Ensure appearance classes match settings
         if (this.applyPieceStyle) this.applyPieceStyle();
+        if (this.applyPieceSize) this.applyPieceSize();
         if (this.updateAnimationsClass) this.updateAnimationsClass();
 
         for (let row = 0; row < 8; row++) {
@@ -432,6 +435,15 @@ class ChessGame {
         chessboard.classList.add(`piece-style-${style}`);
     }
 
+    applyPieceSize() {
+        const chessboard = document.getElementById('chessboard');
+        if (!chessboard) return;
+        const size = Math.max(20, Math.min(80, this.settings.pieceSize || 40));
+        chessboard.style.setProperty('--piece-size', `${size}px`);
+        const valSpan = document.getElementById('pieceSizeValue');
+        if (valSpan) valSpan.textContent = `${size}px`;
+    }
+
     updateAnimationsClass() {
         const chessboard = document.getElementById('chessboard');
         if (!chessboard) return;
@@ -527,6 +539,19 @@ class ChessGame {
             handicapOptions.style.display = e.target.checked ? 'block' : 'none';
         });
 
+        // Live update piece size label as slider moves
+        const sizeInput = document.getElementById('pieceSize');
+        if (sizeInput) {
+            sizeInput.addEventListener('input', (e) => {
+                const v = parseInt(e.target.value, 10) || 40;
+                const span = document.getElementById('pieceSizeValue');
+                if (span) span.textContent = `${v}px`;
+                // Live preview piece size
+                this.settings.pieceSize = v;
+                this.applyPieceSize?.();
+            });
+        }
+
         // Apply settings
         applyBtn.addEventListener('click', () => {
             this.applySettings();
@@ -559,6 +584,10 @@ class ChessGame {
         if (uiSel) uiSel.value = this.settings.uiTheme || 'modern';
         const pieceSel = document.getElementById('pieceStyle');
         if (pieceSel) pieceSel.value = this.settings.pieceStyle || 'standard';
+        const pieceSize = document.getElementById('pieceSize');
+        if (pieceSize) pieceSize.value = this.settings.pieceSize || 40;
+        const pieceSizeValue = document.getElementById('pieceSizeValue');
+        if (pieceSizeValue) pieceSizeValue.textContent = `${this.settings.pieceSize || 40}px`;
         const evalBarSel = document.getElementById('evalBarLayout');
         if (evalBarSel) evalBarSel.value = this.settings.evalBarLayout || 'side-right';
         const vol = document.getElementById('soundVolume');
@@ -586,6 +615,8 @@ class ChessGame {
         if (uiSel) this.settings.uiTheme = uiSel.value;
         const pieceSel = document.getElementById('pieceStyle');
         if (pieceSel) this.settings.pieceStyle = pieceSel.value;
+        const pieceSize = document.getElementById('pieceSize');
+        if (pieceSize) this.settings.pieceSize = parseInt(pieceSize.value, 10) || 40;
         const evalBarSel = document.getElementById('evalBarLayout');
         if (evalBarSel) this.settings.evalBarLayout = evalBarSel.value;
         const vol = document.getElementById('soundVolume');
@@ -594,6 +625,7 @@ class ChessGame {
         this.applyBoardTheme();
         this.applyUITheme();
         this.applyPieceStyle();
+        this.applyPieceSize();
         this.updateAnimationsClass();
         this.applyEvalBarLayout();
 
